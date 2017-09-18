@@ -7,9 +7,10 @@ var metadataGenerator_1 = require("./metadataGenerator");
 var parameterGenerator_1 = require("./parameterGenerator");
 var resolveType_1 = require("./resolveType");
 var MethodGenerator = (function () {
-    function MethodGenerator(node, parentTags, parentSecurity) {
+    function MethodGenerator(node, parentTags, parentMethodVisibility, parentSecurity) {
         this.node = node;
         this.parentTags = parentTags;
+        this.parentMethodVisibility = parentMethodVisibility;
         this.parentSecurity = parentSecurity;
         this.processMethodDecorators();
     }
@@ -33,8 +34,8 @@ var MethodGenerator = (function () {
         return {
             deprecated: jsDocUtils_1.isExistJSDocTag(this.node, function (tag) { return tag.tagName.text === 'deprecated'; }),
             description: jsDocUtils_1.getJSDocDescription(this.node),
-            isHidden: this.getIsHidden(),
             method: this.method,
+            methodVisibility: this.getMethodVisibility(),
             name: this.node.name.text,
             parameters: this.buildParameters(),
             path: this.path,
@@ -192,15 +193,30 @@ var MethodGenerator = (function () {
         }
         return tags;
     };
-    MethodGenerator.prototype.getIsHidden = function () {
+    MethodGenerator.prototype.getMethodVisibility = function () {
         var hiddenDecorators = decoratorUtils_1.getDecorators(this.node, function (identifier) { return identifier.text === 'Hidden'; });
-        if (!hiddenDecorators || !hiddenDecorators.length) {
-            return false;
-        }
-        if (hiddenDecorators.length > 1) {
+        var publicDecorators = decoratorUtils_1.getDecorators(this.node, function (identifier) { return identifier.text === 'Public'; });
+        if (hiddenDecorators && hiddenDecorators.length > 1) {
             throw new exceptions_1.GenerateMetadataError("Only one Hidden decorator allowed in '" + this.getCurrentLocation + "' method.");
         }
-        return true;
+        if (publicDecorators && publicDecorators.length > 1) {
+            throw new exceptions_1.GenerateMetadataError("Only one Public decorator allowed in '" + this.getCurrentLocation + "' method.");
+        }
+        var hasHiddenDecorator = hiddenDecorators && hiddenDecorators.length;
+        var hasPublicDecorator = publicDecorators && publicDecorators.length;
+        if (!hasHiddenDecorator && !hasPublicDecorator) {
+            return this.parentMethodVisibility;
+        }
+        if (hasHiddenDecorator && hasPublicDecorator) {
+            throw new exceptions_1.GenerateMetadataError("Method visibility can be Default,  Public or Hidden in '" + this.getCurrentLocation + "' method.");
+        }
+        if (hasHiddenDecorator) {
+            return 'hidden';
+        }
+        if (hasPublicDecorator) {
+            return 'public';
+        }
+        return undefined;
     };
     MethodGenerator.prototype.getProduces = function () {
         var producesDecorators = decoratorUtils_1.getDecorators(this.node, function (identifier) { return identifier.text === 'Produces'; });

@@ -10,6 +10,7 @@ var ControllerGenerator = (function () {
         this.path = this.getPath();
         this.tags = this.getTags();
         this.security = this.getSecurity();
+        this.methodVisibility = this.getMethodVisibility();
     }
     ControllerGenerator.prototype.IsValid = function () {
         return !!this.path || this.path === '';
@@ -33,7 +34,7 @@ var ControllerGenerator = (function () {
         var _this = this;
         return this.node.members
             .filter(function (m) { return m.kind === ts.SyntaxKind.MethodDeclaration; })
-            .map(function (m) { return new methodGenerator_1.MethodGenerator(m, _this.tags, _this.security); })
+            .map(function (m) { return new methodGenerator_1.MethodGenerator(m, _this.tags, _this.methodVisibility, _this.security); })
             .filter(function (generator) { return generator.IsValid(); })
             .map(function (generator) { return generator.Generate(); });
     };
@@ -61,6 +62,22 @@ var ControllerGenerator = (function () {
         var decorator = decorators[0];
         var expression = decorator.parent;
         return expression.arguments.map(function (a) { return a.text; });
+    };
+    ControllerGenerator.prototype.getMethodVisibility = function () {
+        var hiddenDecorators = decoratorUtils_1.getDecorators(this.node, function (identifier) { return identifier.text === 'Hidden'; });
+        var publicDecorators = decoratorUtils_1.getDecorators(this.node, function (identifier) { return identifier.text === 'Public'; });
+        var hasHiddenDecorator = hiddenDecorators && hiddenDecorators.length;
+        var hasPublicDecorator = publicDecorators && publicDecorators.length;
+        if (hasHiddenDecorator && hasPublicDecorator) {
+            throw new exceptions_1.GenerateMetadataError("Method visibility can be Default,  Public or Hidden");
+        }
+        if (hasHiddenDecorator) {
+            return 'hidden';
+        }
+        if (hasPublicDecorator) {
+            return 'public';
+        }
+        return undefined;
     };
     ControllerGenerator.prototype.getSecurity = function () {
         var securityDecorators = decoratorUtils_1.getDecorators(this.node, function (identifier) { return identifier.text === 'Security'; });

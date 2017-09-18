@@ -448,7 +448,7 @@ describe('Metadata generation', () => {
 
       expect(method.method).to.equal('get');
       expect(method.path).to.equal('/normalGetMethod');
-      expect(method.isHidden).to.equal(false);
+      expect(method.methodVisibility).to.equal(undefined);
     });
 
     it('should generate hidden methods', () => {
@@ -459,7 +459,7 @@ describe('Metadata generation', () => {
 
       expect(method.method).to.equal('get');
       expect(method.path).to.equal('/hiddenGetMethod');
-      expect(method.isHidden).to.equal(true);
+      expect(method.methodVisibility).to.equal('hidden');
     });
   });
 

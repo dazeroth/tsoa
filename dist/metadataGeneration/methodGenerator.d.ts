@@ -3,10 +3,11 @@ import { Tsoa } from './tsoa';
 export declare class MethodGenerator {
     private readonly node;
     private readonly parentTags;
+    private readonly parentMethodVisibility;
     private readonly parentSecurity;
     private method;
     private path;
-    constructor(node: ts.MethodDeclaration, parentTags?: string[] | undefined, parentSecurity?: Tsoa.Security[] | undefined);
+    constructor(node: ts.MethodDeclaration, parentTags?: string[] | undefined, parentMethodVisibility?: "hidden" | "public" | undefined, parentSecurity?: Tsoa.Security[] | undefined);
     IsValid(): boolean;
     Generate(): Tsoa.Method;
     private buildParameters();
@@ -18,7 +19,7 @@ export declare class MethodGenerator {
     private supportsPathMethod(method);
     private getExamplesValue(argument);
     private getTags();
-    private getIsHidden();
+    private getMethodVisibility();
     private getProduces();
     private getSecurity();
 }

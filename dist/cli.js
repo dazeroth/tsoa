@@ -112,12 +112,18 @@ var jsonArgs = {
     required: false,
     type: 'boolean',
 };
+var endpointsVisibilityArgs = {
+    describe: 'endpoints visibility: all, allExceptHidden, onlyPublic. Default: allExceptHidden',
+    required: false,
+    type: 'string',
+};
 yargs
     .usage('Usage: $0 <command> [options]')
     .demand(1)
     .command('swagger', 'Generate swagger spec', {
     basePath: basePathArgs,
     configuration: configurationArgs,
+    endpointsVisibility: endpointsVisibilityArgs,
     host: hostArgs,
     json: jsonArgs,
     yaml: yarmlArgs,
@@ -144,6 +150,9 @@ function swaggerSpecGenerator(args) {
         }
         if (args.json) {
             config.swagger.yaml = false;
+        }
+        if (args.endpointsVisibility) {
+            config.swagger.endpointsVisibility = args.endpointsVisibility;
         }
         var compilerOptions = validateCompilerOptions(config.compilerOptions);
         var swaggerConfig = validateSwaggerConfig(config.swagger);

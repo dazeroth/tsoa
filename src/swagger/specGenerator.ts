@@ -78,7 +78,7 @@ export class SpecGenerator {
 
     this.metadata.controllers.forEach(controller => {
       // construct documentation using all methods except @Hidden
-      controller.methods.filter(method => !method.isHidden).forEach(method => {
+      controller.methods.filter( method => this.filterVisibleMethods(this.config, method)).forEach(method => {
         const path = `${controller.path ? `/${controller.path}` : ''}${method.path}`;
         paths[path] = paths[path] || {};
         this.buildMethod(controller.name, method, paths[path]);
@@ -86,6 +86,17 @@ export class SpecGenerator {
     });
 
     return paths;
+  }
+
+  private filterVisibleMethods(config: SwaggerConfig, method: Tsoa.Method) {
+    switch (config.endpointsVisibility) {
+      case 'all': return true;
+      case 'allExceptHidden': return method.methodVisibility !== 'hidden';
+      case 'onlyPublic': return method.methodVisibility === 'public';
+      case undefined: return true;
+      default: throw new Error(`endpointsVisibility '${config.endpointsVisibility}' is not supported`);
+    }
+
   }
 
   private buildMethod(controllerName: string, method: Tsoa.Method, pathObject: any) {

@@ -79,13 +79,22 @@ var SpecGenerator = (function () {
         var paths = {};
         this.metadata.controllers.forEach(function (controller) {
             // construct documentation using all methods except @Hidden
-            controller.methods.filter(function (method) { return !method.isHidden; }).forEach(function (method) {
+            controller.methods.filter(function (method) { return _this.filterVisibleMethods(_this.config, method); }).forEach(function (method) {
                 var path = "" + (controller.path ? "/" + controller.path : '') + method.path;
                 paths[path] = paths[path] || {};
                 _this.buildMethod(controller.name, method, paths[path]);
             });
         });
         return paths;
+    };
+    SpecGenerator.prototype.filterVisibleMethods = function (config, method) {
+        switch (config.endpointsVisibility) {
+            case 'all': return true;
+            case 'allExceptHidden': return method.methodVisibility !== 'hidden';
+            case 'onlyPublic': return method.methodVisibility === 'public';
+            case undefined: return true;
+            default: throw new Error("endpointsVisibility '" + config.endpointsVisibility + "' is not supported");
+        }
     };
     SpecGenerator.prototype.buildMethod = function (controllerName, method, pathObject) {
         var _this = this;

@@ -8,3 +8,10 @@ export function Route(name?: string): any {
 export function Hidden(): any {
   return () => { return; };
 }
+
+/**
+ * Public method
+ */
+export function Public(): any {
+  return () => { return; };
+}

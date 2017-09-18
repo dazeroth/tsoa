@@ -11,4 +11,11 @@ function Hidden() {
     return function () { return; };
 }
 exports.Hidden = Hidden;
+/**
+ * Public method
+ */
+function Public() {
+    return function () { return; };
+}
+exports.Public = Public;
 //# sourceMappingURL=route.js.map

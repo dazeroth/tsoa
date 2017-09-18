@@ -8,11 +8,13 @@ export class ControllerGenerator {
   private readonly path?: string;
   private readonly tags?: string[];
   private readonly security?: Tsoa.Security[];
+  private readonly methodVisibility?: Tsoa.MethodVisibility;
 
   constructor(private readonly node: ts.ClassDeclaration) {
     this.path = this.getPath();
     this.tags = this.getTags();
     this.security = this.getSecurity();
+    this.methodVisibility = this.getMethodVisibility();
   }
 
   public IsValid() {
@@ -40,7 +42,7 @@ export class ControllerGenerator {
   private buildMethods() {
     return this.node.members
       .filter((m) => m.kind === ts.SyntaxKind.MethodDeclaration)
-      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.tags, this.security))
+      .map((m: ts.MethodDeclaration) => new MethodGenerator(m, this.tags, this.methodVisibility, this.security))
       .filter((generator) => generator.IsValid())
       .map((generator) => generator.Generate());
   }
@@ -73,6 +75,27 @@ export class ControllerGenerator {
     const expression = decorator.parent as ts.CallExpression;
 
     return expression.arguments.map((a: any) => a.text as string);
+  }
+
+  private getMethodVisibility() {
+    const hiddenDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Hidden');
+    const publicDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Public');
+
+    const hasHiddenDecorator = hiddenDecorators && hiddenDecorators.length;
+    const hasPublicDecorator = publicDecorators && publicDecorators.length;
+
+    if (hasHiddenDecorator && hasPublicDecorator) {
+      throw new GenerateMetadataError(`Method visibility can be Default,  Public or Hidden`);
+    }
+    if (hasHiddenDecorator) {
+      return  'hidden';
+    }
+
+    if (hasPublicDecorator) {
+      return 'public';
+    }
+
+    return undefined;
   }
 
   private getSecurity(): Tsoa.Security[] {

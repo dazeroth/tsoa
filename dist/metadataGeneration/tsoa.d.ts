@@ -21,7 +21,7 @@ export declare namespace Tsoa {
         responses: Response[];
         security: Security[];
         summary?: string;
-        isHidden: boolean;
+        methodVisibility?: MethodVisibility;
         produces?: string[];
     }
     interface Parameter {
@@ -61,6 +61,7 @@ export declare namespace Tsoa {
     interface Type {
         dataType: 'string' | 'double' | 'float' | 'integer' | 'long' | 'enum' | 'array' | 'datetime' | 'date' | 'buffer' | 'void' | 'object' | 'any' | 'refEnum' | 'refObject' | 'file';
     }
+    type MethodVisibility = 'hidden' | 'public';
     interface EnumerateType extends Type {
         dataType: 'enum';
         enums: string[];

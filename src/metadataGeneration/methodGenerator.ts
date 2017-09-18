@@ -14,6 +14,7 @@ export class MethodGenerator {
   constructor(
     private readonly node: ts.MethodDeclaration,
     private readonly parentTags?: string[],
+    private readonly parentMethodVisibility?: Tsoa.MethodVisibility,
     private readonly parentSecurity?: Tsoa.Security[]) {
     this.processMethodDecorators();
   }
@@ -41,8 +42,8 @@ export class MethodGenerator {
     return {
       deprecated: isExistJSDocTag(this.node, (tag) => tag.tagName.text === 'deprecated'),
       description: getJSDocDescription(this.node),
-      isHidden: this.getIsHidden(),
       method: this.method,
+      methodVisibility: this.getMethodVisibility(),
       name: (this.node.name as ts.Identifier).text,
       parameters: this.buildParameters(),
       path: this.path,
@@ -219,16 +220,37 @@ export class MethodGenerator {
     return tags;
   }
 
-  private getIsHidden() {
+  private getMethodVisibility() {
     const hiddenDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Hidden');
-    if (!hiddenDecorators || !hiddenDecorators.length) {
-      return false;
-    }
-    if (hiddenDecorators.length > 1) {
+    const publicDecorators = getDecorators(this.node, (identifier) => identifier.text === 'Public');
+
+    if (hiddenDecorators && hiddenDecorators.length > 1) {
       throw new GenerateMetadataError(`Only one Hidden decorator allowed in '${this.getCurrentLocation}' method.`);
     }
 
-    return true;
+    if (publicDecorators && publicDecorators.length > 1) {
+      throw new GenerateMetadataError(`Only one Public decorator allowed in '${this.getCurrentLocation}' method.`);
+    }
+
+    const hasHiddenDecorator = hiddenDecorators && hiddenDecorators.length;
+    const hasPublicDecorator = publicDecorators && publicDecorators.length;
+
+    if (!hasHiddenDecorator && !hasPublicDecorator) {
+      return this.parentMethodVisibility;
+    }
+    if (hasHiddenDecorator && hasPublicDecorator) {
+      throw new GenerateMetadataError(`Method visibility can be Default,  Public or Hidden in '${this.getCurrentLocation}' method.`);
+    }
+    if (hasHiddenDecorator) {
+      return  'hidden';
+    }
+
+    if (hasPublicDecorator) {
+      return 'public';
+    }
+
+    return undefined;
+
   }
 
   private getProduces() {

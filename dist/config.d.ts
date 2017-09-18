@@ -19,6 +19,13 @@ export interface Config {
 }
 export interface SwaggerConfig {
     /**
+     * Visibility for endpoints:
+     * -onlyPublic: only methods with @Public decorator are visible
+     * -allExceptHidden: methods that tagged with @Hidden are hidden, all others - visible
+     * -all: all methods are visible regardless @Public and @Hidden
+     */
+    endpointsVisibility?: 'onlyPublic' | 'allExceptHidden' | 'all';
+    /**
      * Generated SwaggerConfig.json will output here
      */
     outputDirectory: string;

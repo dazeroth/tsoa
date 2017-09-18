@@ -8,6 +8,7 @@ export declare class SpecGenerator {
     GetSpec(): Swagger.Spec;
     private buildDefinitions();
     private buildPaths();
+    private filterVisibleMethods(config, method);
     private buildMethod(controllerName, method, pathObject);
     private buildBodyPropParameter(controllerName, method);
     private buildParameter(source);
